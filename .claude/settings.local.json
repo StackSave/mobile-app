@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/harfi/OneDrive/Documents/Project/StackSave/frontend/src/**)",
+      "Read(//c/Users/harfi/OneDrive/Documents/Project/StackSave - Mobile/backend/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
