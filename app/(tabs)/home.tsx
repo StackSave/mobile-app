@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontWeight: 'bold',
+    marginBottom: 12,
     color: '#000000',
   },
   addGoalButton: {
@@ -153,11 +154,6 @@ const styles = StyleSheet.create({
   },
   actionsSection: {
     marginTop: 16,
-  },
-  sectionTitle: {
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#111827',
   },
   actions: {
     flexDirection: 'row',
