@@ -12,11 +12,15 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "@tanstack/react-query": "^5.90.5",
     "@types/react": "~19.1.10",
     "@types/react-native": "^0.72.8",
-    "@walletconnect/modal-react-native": "1.0.0-rc.11",
+    "@walletconnect/modal-react-native": "^1.0.0-rc.11",
     "@walletconnect/react-native-compat": "^2.22.4",
+    "@walletconnect/web3-provider": "^1.8.0",
     "babel-preset-expo": "^54.0.4",
+    "date-fns": "^4.1.0",
+    "ethers": "^6.13.4",
     "expo": "~54.0.13",
     "expo-clipboard": "~8.0.7",
     "expo-linking": "~8.0.8",
@@ -37,7 +41,8 @@
     "react-native-vector-icons": "^10.3.0",
     "react-native-web": "^0.21.0",
     "typescript": "^5.9.3",
-    "viem": "^2.38.3"
+    "viem": "^2.21.53",
+    "wagmi": "^2.18.2"
   },
   "private": true
 }

@@ -1,66 +1,48 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Text, Switch, Badge, Avatar } from 'react-native-paper';
+import { Text, Badge, Avatar } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useMode } from '../contexts/ModeContext';
-import { useState } from 'react';
+import { useNotifications } from '../contexts/NotificationContext';
 
 interface HomeHeaderProps {
-  onSearchPress: () => void;
   notificationCount?: number;
 }
 
 export default function HomeHeader({
-  onSearchPress,
-  notificationCount = 0,
+  notificationCount,
 }: HomeHeaderProps) {
-  const { mode, toggleMode, isProMode } = useMode();
+  const { unreadCount } = useNotifications();
+
+  // Use real unread count from context, fallback to prop
+  const displayCount = notificationCount ?? unreadCount;
 
   const handleProfilePress = () => {
     router.push('/(tabs)/profile');
   };
 
+  const handleNotificationPress = () => {
+    router.push('/(tabs)/notifications');
+  };
+
   return (
     <View style={styles.container}>
-      {/* Left: Mode Switcher */}
+      {/* Left: App Logo/Title */}
       <View style={styles.leftSection}>
-        <View style={styles.modeSwitch}>
-          <Text
-            variant="labelSmall"
-            style={[styles.modeLabel, !isProMode && styles.activeModeLabel]}
-          >
-            Lite
-          </Text>
-          <Switch
-            value={isProMode}
-            onValueChange={toggleMode}
-            color="#0052FF"
-            style={styles.switch}
-          />
-          <Text
-            variant="labelSmall"
-            style={[styles.modeLabel, isProMode && styles.activeModeLabel]}
-          >
-            Pro
-          </Text>
-        </View>
+        <Text variant="titleLarge" style={styles.appTitle}>
+          StackSave
+        </Text>
       </View>
 
-      {/* Right: Search, Notifications, Profile */}
+      {/* Right: Notifications, Profile */}
       <View style={styles.rightSection}>
-        {/* Search */}
-        <TouchableOpacity onPress={onSearchPress} style={styles.iconButton}>
-          <MaterialCommunityIcons name="magnify" size={24} color="#000000" />
-        </TouchableOpacity>
-
         {/* Notifications */}
         <View style={styles.notificationContainer}>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity style={styles.iconButton} onPress={handleNotificationPress}>
             <MaterialCommunityIcons name="bell-outline" size={24} color="#000000" />
-            {notificationCount > 0 && (
+            {displayCount > 0 && (
               <View style={styles.badgeContainer}>
                 <Badge size={16} style={styles.badge}>
-                  {notificationCount}
+                  {displayCount > 99 ? '99+' : displayCount}
                 </Badge>
               </View>
             )}
@@ -95,21 +77,9 @@ const styles = StyleSheet.create({
   leftSection: {
     flex: 1,
   },
-  modeSwitch: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  modeLabel: {
-    color: '#9CA3AF',
-    fontWeight: '600',
-  },
-  activeModeLabel: {
-    color: '#000000',
+  appTitle: {
     fontWeight: 'bold',
-  },
-  switch: {
-    transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }],
+    color: '#000000',
   },
   rightSection: {
     flexDirection: 'row',

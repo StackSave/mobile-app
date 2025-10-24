@@ -31,10 +31,17 @@ export default function SavingsGoalCard({
     (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
   );
 
-  const getTimeRemainingText = () => {
+  const getTimeRemainingText = (forMainGoal = false) => {
     if (daysRemaining < 0) return 'Overdue';
     if (daysRemaining === 0) return 'Due today';
-    if (daysRemaining === 1) return '1 day left';
+    if (daysRemaining === 1) return '1 day remaining';
+
+    // For main goal, always show in days
+    if (forMainGoal) {
+      return `${daysRemaining} days remaining`;
+    }
+
+    // For sub goals, use compact format
     if (daysRemaining < 7) return `${daysRemaining} days left`;
     if (daysRemaining < 30) {
       const weeks = Math.floor(daysRemaining / 7);
@@ -83,10 +90,10 @@ export default function SavingsGoalCard({
             <View style={styles.mainStatDivider} />
             <View style={styles.mainStatItem}>
               <Text variant="headlineSmall" style={styles.timeText}>
-                {getTimeRemainingText()}
+                {getTimeRemainingText(true)}
               </Text>
               <Text variant="bodySmall" style={styles.statLabel}>
-                Remaining
+                Time Left
               </Text>
             </View>
           </View>
@@ -126,12 +133,6 @@ export default function SavingsGoalCard({
           color="#000000"
           style={styles.subProgressBar}
         />
-
-        <View style={styles.subFooter}>
-          <Text variant="bodySmall" style={styles.subTime}>
-            {getTimeRemainingText()}
-          </Text>
-        </View>
       </Card.Content>
     </Card>
   );
@@ -266,17 +267,5 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#F3F4F6',
-    marginBottom: 8,
-  },
-  subFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  subAmount: {
-    color: '#6B7280',
-  },
-  subTime: {
-    color: '#9CA3AF',
   },
 });

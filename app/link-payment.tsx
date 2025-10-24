@@ -5,10 +5,11 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 const PAYMENT_METHODS = [
+  { id: 'usdc', name: 'USDC', icon: 'currency-usd-circle' },
+  { id: 'idrx', name: 'IDRX', icon: 'cash' },
   { id: 'gopay', name: 'GoPay', icon: 'wallet' },
   { id: 'dana', name: 'DANA', icon: 'wallet-outline' },
-  { id: 'ovo', name: 'OVO', icon: 'wallet-plus' },
-  { id: 'bank', name: 'Bank Transfer', icon: 'bank' },
+  { id: 'bank_transfer', name: 'Bank Transfer', icon: 'bank' },
 ];
 
 export default function LinkPaymentScreen() {

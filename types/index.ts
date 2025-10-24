@@ -66,6 +66,7 @@ export interface SavingsGoal {
   title: string;
   targetAmount: number;
   currentAmount: number;
+  currency: 'IDR' | 'USD';
   frequency: 'weekly' | 'monthly';
   startDate: Date;
   endDate: Date;
@@ -87,7 +88,7 @@ export interface SavingPreferences {
 }
 
 // Payment Method Types
-export type PaymentMethodType = 'gopay' | 'dana' | 'ovo' | 'bank_transfer' | 'shopeepay' | 'usdc' | 'idrx';
+export type PaymentMethodType = 'gopay' | 'dana' | 'bank_transfer' | 'usdc' | 'idrx';
 
 export interface PaymentMethod {
   id: string;
@@ -238,4 +239,21 @@ export interface AllocationHistoryEntry {
   }[];
   userMode: AppMode;
   createdAt: Date;
+}
+
+// Notification Types
+export type NotificationType = 'transaction' | 'reminder' | 'goal_achievement' | 'system' | 'streak' | 'milestone';
+export type NotificationPriority = 'low' | 'medium' | 'high';
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  priority: NotificationPriority;
+  title: string;
+  message: string;
+  data?: any; // Additional data related to the notification
+  isRead: boolean;
+  timestamp: Date;
+  actionUrl?: string; // Optional deep link or route
+  icon?: string;
 }

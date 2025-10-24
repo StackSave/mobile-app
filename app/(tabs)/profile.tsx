@@ -1,15 +1,18 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Card, Text, Avatar, List, Switch, Button, Divider } from 'react-native-paper';
+import { Card, Text, Avatar, List, Switch, Button, Divider, Badge } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useWallet } from '../../contexts/WalletContext';
 import { useSavings } from '../../contexts/SavingsContext';
 import { useStreak } from '../../contexts/StreakContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { useState } from 'react';
 
 export default function ProfileScreen() {
   const { wallet, disconnect } = useWallet();
   const { stats } = useSavings();
   const { streak } = useStreak();
+  const { unreadCount } = useNotifications();
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
@@ -20,6 +23,10 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error('Error disconnecting wallet:', error);
     }
+  };
+
+  const handleNotificationsPress = () => {
+    router.push('/(tabs)/notifications');
   };
 
   return (
@@ -128,10 +135,29 @@ export default function ProfileScreen() {
               Settings
             </Text>
             <List.Item
+              title="Notifications"
+              description="View all your notifications"
+              left={(props) => (
+                <List.Icon {...props} icon="bell-outline" color="#000000" />
+              )}
+              right={(props) => (
+                <View style={styles.notificationRightContent}>
+                  {unreadCount > 0 && (
+                    <Badge size={20} style={styles.badge}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Badge>
+                  )}
+                  <List.Icon {...props} icon="chevron-right" color="#9CA3AF" />
+                </View>
+              )}
+              onPress={handleNotificationsPress}
+            />
+            <Divider />
+            <List.Item
               title="Push Notifications"
               description="Receive alerts about your savings"
               left={(props) => (
-                <List.Icon {...props} icon="bell-outline" color="#000000" />
+                <List.Icon {...props} icon="bell-ring-outline" color="#000000" />
               )}
               right={() => (
                 <Switch
@@ -282,5 +308,13 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 32,
+  },
+  notificationRightContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  badge: {
+    backgroundColor: '#EF4444',
   },
 });

@@ -49,7 +49,7 @@ const generateDummyPaymentMethods = (): PaymentMethod[] => {
     {
       id: '5',
       type: 'bank_transfer',
-      displayName: 'BCA',
+      displayName: 'Bank Transfer',
       accountNumber: '****7890',
       isDefault: false,
       icon: 'bank',

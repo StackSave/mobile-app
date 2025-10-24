@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Deposit, SavingsStats, Transaction, DailyGrowth } from '../types';
+import { useNotifications } from './NotificationContext';
 
 // Default APY for earnings calculations (will be replaced by protocol APY in production)
 const DEFAULT_APY = 5.5;
@@ -15,6 +16,7 @@ interface SavingsContextType {
 const SavingsContext = createContext<SavingsContextType | undefined>(undefined);
 
 export const SavingsProvider = ({ children }: { children: ReactNode }) => {
+  const { addNotification } = useNotifications();
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [previousDayBalance, setPreviousDayBalance] = useState<number>(0);
@@ -100,6 +102,16 @@ export const SavingsProvider = ({ children }: { children: ReactNode }) => {
       txHash: `0x${Math.random().toString(16).substring(2, 10)}...${Math.random().toString(16).substring(2, 6)}`,
     };
     setTransactions((prev) => [newTransaction, ...prev]);
+
+    // Add notification for successful deposit
+    addNotification(
+      'transaction',
+      'Deposit Successful!',
+      `You've deposited ${amountIDR ? `Rp ${amountIDR.toLocaleString('id-ID')}` : `$${amount.toFixed(2)}`} successfully. Your savings are now growing!`,
+      'high',
+      { transactionId: newTransaction.id, amount, amountIDR, type: 'deposit' },
+      '/(tabs)/portfolio'
+    );
   };
 
   const withdraw = (amount: number, amountIDR?: number) => {
@@ -113,6 +125,16 @@ export const SavingsProvider = ({ children }: { children: ReactNode }) => {
       txHash: `0x${Math.random().toString(16).substring(2, 10)}...${Math.random().toString(16).substring(2, 6)}`,
     };
     setTransactions((prev) => [newTransaction, ...prev]);
+
+    // Add notification for successful withdrawal
+    addNotification(
+      'transaction',
+      'Withdrawal Successful!',
+      `You've withdrawn ${amountIDR ? `Rp ${amountIDR.toLocaleString('id-ID')}` : `$${amount.toFixed(2)}`}. Funds will arrive shortly.`,
+      'high',
+      { transactionId: newTransaction.id, amount, amountIDR, type: 'withdraw' },
+      '/(tabs)/portfolio'
+    );
   };
 
   return (

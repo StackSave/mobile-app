@@ -29,12 +29,8 @@ export default function PaymentMethodSelector({
         return 'wallet';
       case 'dana':
         return 'credit-card';
-      case 'ovo':
-        return 'cash-multiple';
       case 'bank_transfer':
         return 'bank';
-      case 'shopeepay':
-        return 'shopping';
       default:
         return 'credit-card-outline';
     }

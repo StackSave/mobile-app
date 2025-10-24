@@ -55,6 +55,12 @@ export default function TabLayout() {
       />
       {/* Hidden tabs - still accessible but not shown in nav */}
       <Tabs.Screen
+        name="notifications"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="withdraw"
         options={{
           href: null,

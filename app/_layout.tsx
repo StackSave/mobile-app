@@ -10,6 +10,7 @@ import { StreakProvider } from '../contexts/StreakContext';
 import { ModeProvider } from '../contexts/ModeContext';
 import { GoalsProvider } from '../contexts/GoalsContext';
 import { PortfolioProvider } from '../contexts/PortfolioContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
 
 const theme = {
   ...MD3LightTheme,
@@ -35,26 +36,28 @@ export default function RootLayout() {
           <ProtocolProvider>
             <ModeProvider>
               <WalletProvider>
-                <SavingsProvider>
-                  <GoalsProvider>
-                    <PortfolioProvider>
-                      <StreakProvider>
-                        <Stack screenOptions={{ headerShown: false }}>
-                          <Stack.Screen name="index" />
-                          <Stack.Screen name="onboarding" />
-                          <Stack.Screen name="auth-choice" />
-                          <Stack.Screen name="connect-wallet" />
-                          <Stack.Screen name="email-phone-auth" />
-                          <Stack.Screen name="setup-goals" />
-                          <Stack.Screen name="link-payment" />
-                          <Stack.Screen name="pro-strategy-config" />
-                          <Stack.Screen name="(tabs)" />
-                          <Stack.Screen name="calendar" />
-                        </Stack>
-                      </StreakProvider>
-                    </PortfolioProvider>
-                  </GoalsProvider>
-                </SavingsProvider>
+                <NotificationProvider>
+                  <SavingsProvider>
+                    <GoalsProvider>
+                      <PortfolioProvider>
+                        <StreakProvider>
+                          <Stack screenOptions={{ headerShown: false }}>
+                            <Stack.Screen name="index" />
+                            <Stack.Screen name="onboarding" />
+                            <Stack.Screen name="auth-choice" />
+                            <Stack.Screen name="connect-wallet" />
+                            <Stack.Screen name="email-phone-auth" />
+                            <Stack.Screen name="setup-goals" />
+                            <Stack.Screen name="link-payment" />
+                            <Stack.Screen name="pro-strategy-config" />
+                            <Stack.Screen name="(tabs)" />
+                            <Stack.Screen name="calendar" />
+                          </Stack>
+                        </StreakProvider>
+                      </PortfolioProvider>
+                    </GoalsProvider>
+                  </SavingsProvider>
+                </NotificationProvider>
               </WalletProvider>
             </ModeProvider>
           </ProtocolProvider>

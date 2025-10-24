@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { createPublicClient, http, formatEther } from 'viem';
-import { baseSepolia } from 'viem/chains';
+import { ethers } from 'ethers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Wallet, AuthType } from '../types';
 
 const STORAGE_KEY = '@stacksave_wallet_session';
+const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
 
 interface WalletContextType {
   wallet: Wallet | null;
@@ -22,30 +22,56 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null);
 
-  // Public client for reading blockchain data
-  const publicClient = createPublicClient({
-    chain: baseSepolia,
-    transport: http('https://sepolia.base.org'),
-  });
+  // Initialize provider
+  useEffect(() => {
+    const rpcProvider = new ethers.JsonRpcProvider(BASE_SEPOLIA_RPC);
+    setProvider(rpcProvider);
+  }, []);
 
   // Initialize wallet session from storage
   useEffect(() => {
     const initializeSession = async () => {
       try {
         const savedSession = await AsyncStorage.getItem(STORAGE_KEY);
-        if (savedSession) {
+        if (savedSession && provider) {
           const sessionData = JSON.parse(savedSession);
-          // Auto-connect with saved address
-          await connect(sessionData.address);
+
+          // Manually recreate wallet without calling connect to avoid loops
+          const restoredWallet: Wallet = {
+            address: sessionData.address,
+            balance: { eth: 0, usdc: 0 },
+            network: 'Base Sepolia',
+            authType: 'wallet',
+          };
+
+          setWallet(restoredWallet);
+
+          // Fetch balances after a short delay
+          setTimeout(async () => {
+            try {
+              const ethBalanceBigInt = await provider.getBalance(sessionData.address);
+              const ethBalance = parseFloat(ethers.formatEther(ethBalanceBigInt));
+
+              setWallet(prev => prev ? {
+                ...prev,
+                balance: { eth: ethBalance, usdc: 0 },
+              } : null);
+            } catch (error) {
+              console.error('Error fetching balances on restore:', error);
+            }
+          }, 500);
         }
       } catch (error) {
         console.error('Error loading wallet session:', error);
       }
     };
 
-    initializeSession();
-  }, []);
+    if (provider) {
+      initializeSession();
+    }
+  }, [provider]);
 
   const saveSession = async (walletAddress: string) => {
     try {
@@ -70,13 +96,12 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchBalances = async () => {
-    if (!wallet?.address) return;
+    if (!wallet?.address || !provider) return;
 
     try {
       // Fetch ETH balance
-      const ethBalance = await publicClient.getBalance({
-        address: wallet.address as `0x${string}`,
-      });
+      const ethBalanceBigInt = await provider.getBalance(wallet.address);
+      const ethBalance = parseFloat(ethers.formatEther(ethBalanceBigInt));
 
       // TODO: Fetch USDC balance from USDC contract on Base Sepolia
       // For now, initialize with 0 USDC
@@ -85,7 +110,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       setWallet(prev => prev ? {
         ...prev,
         balance: {
-          eth: parseFloat(formatEther(ethBalance)),
+          eth: ethBalance,
           usdc: usdcBalance,
         },
       } : null);
@@ -104,7 +129,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       setIsConnecting(true);
 
       // Validate address format
-      if (!address.startsWith('0x') || address.length !== 42) {
+      if (!ethers.isAddress(address)) {
         throw new Error('Invalid Ethereum address format');
       }
 

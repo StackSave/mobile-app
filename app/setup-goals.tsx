@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Button, Text, TextInput, RadioButton, Menu } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Button, Text, TextInput, RadioButton } from 'react-native-paper';
 import { router } from 'expo-router';
 import { useGoals } from '../contexts/GoalsContext';
 import { formatIDR } from '../utils/formatters';
@@ -10,44 +10,34 @@ export default function SetupGoalsScreen() {
 
   const [title, setTitle] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
+  const [currency, setCurrency] = useState<'IDR' | 'USD'>('IDR');
   const [frequency, setFrequency] = useState<'weekly' | 'monthly'>('monthly');
-  const [timeFrame, setTimeFrame] = useState<'1_month' | '3_months' | '6_months' | '1_year'>('3_months');
-  const [showTimeFrameMenu, setShowTimeFrameMenu] = useState(false);
+  const [timeFrameDays, setTimeFrameDays] = useState(90); // Default 90 days (3 months)
+  const [timeFrameError, setTimeFrameError] = useState('');
 
   const getEndDate = () => {
     const now = new Date();
-    switch (timeFrame) {
-      case '1_month':
-        return new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-      case '3_months':
-        return new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-      case '6_months':
-        return new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
-      case '1_year':
-        return new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
-      default:
-        return new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-    }
+    return new Date(now.getTime() + timeFrameDays * 24 * 60 * 60 * 1000);
   };
 
-  const getTimeFrameLabel = () => {
-    switch (timeFrame) {
-      case '1_month':
-        return '1 Month';
-      case '3_months':
-        return '3 Months';
-      case '6_months':
-        return '6 Months';
-      case '1_year':
-        return '1 Year';
-      default:
-        return '3 Months';
+  const handleTimeFrameChange = (value: string) => {
+    const numValue = parseInt(value);
+    if (!isNaN(numValue) && numValue >= 1) {
+      setTimeFrameDays(numValue);
+      if (numValue < 90) {
+        setTimeFrameError('Minimum timeframe is 90 days');
+      } else {
+        setTimeFrameError('');
+      }
+    } else if (value === '') {
+      setTimeFrameDays(0);
+      setTimeFrameError('');
     }
   };
 
   const handleContinue = () => {
-    if (!title.trim() || !targetAmount || parseFloat(targetAmount) <= 0) {
-      alert('Please fill in all required fields');
+    if (!title.trim() || !targetAmount || parseFloat(targetAmount) <= 0 || timeFrameDays < 90) {
+      Alert.alert('Incomplete Form', 'Please fill in all required fields. Minimum timeframe is 90 days.');
       return;
     }
 
@@ -56,14 +46,15 @@ export default function SetupGoalsScreen() {
       title: title.trim(),
       targetAmount: parseFloat(targetAmount),
       currentAmount: 0,
+      currency: currency,
       frequency,
       startDate: new Date(),
       endDate: getEndDate(),
       isMainGoal: true, // First goal is always main goal
     });
 
-    // Navigate to home (wallet already connected)
-    router.replace('/(tabs)/home');
+    // Navigate to login page to save progress
+    router.push('/login');
   };
 
   return (
@@ -94,10 +85,29 @@ export default function SetupGoalsScreen() {
         />
       </View>
 
+      {/* Currency Selection */}
+      <View style={styles.inputGroup}>
+        <Text variant="labelLarge" style={styles.label}>
+          Currency *
+        </Text>
+        <RadioButton.Group onValueChange={(value) => setCurrency(value as 'IDR' | 'USD')} value={currency}>
+          <View style={styles.radioRow}>
+            <View style={styles.radioOption}>
+              <RadioButton value="IDR" />
+              <Text variant="bodyMedium">IDR (Rp)</Text>
+            </View>
+            <View style={styles.radioOption}>
+              <RadioButton value="USD" />
+              <Text variant="bodyMedium">USD ($)</Text>
+            </View>
+          </View>
+        </RadioButton.Group>
+      </View>
+
       {/* Target Amount */}
       <View style={styles.inputGroup}>
         <Text variant="labelLarge" style={styles.label}>
-          Target Amount (IDR) *
+          Target Amount *
         </Text>
         <TextInput
           mode="outlined"
@@ -105,7 +115,7 @@ export default function SetupGoalsScreen() {
           value={targetAmount}
           onChangeText={setTargetAmount}
           keyboardType="decimal-pad"
-          left={<TextInput.Affix text="Rp" />}
+          left={<TextInput.Affix text={currency === 'IDR' ? 'Rp' : '$'} />}
           style={styles.input}
         />
       </View>
@@ -115,51 +125,28 @@ export default function SetupGoalsScreen() {
       {/* Time Frame */}
       <View style={styles.inputGroup}>
         <Text variant="labelLarge" style={styles.label}>
-          Time Frame *
+          Time Frame (Days) *
         </Text>
-        <Menu
-          visible={showTimeFrameMenu}
-          onDismiss={() => setShowTimeFrameMenu(false)}
-          anchor={
-            <Button
-              mode="outlined"
-              onPress={() => setShowTimeFrameMenu(true)}
-              style={styles.dateButton}
-              contentStyle={styles.dateButtonContent}
-            >
-              {getTimeFrameLabel()}
-            </Button>
-          }
-        >
-          <Menu.Item
-            onPress={() => {
-              setTimeFrame('1_month');
-              setShowTimeFrameMenu(false);
-            }}
-            title="1 Month"
-          />
-          <Menu.Item
-            onPress={() => {
-              setTimeFrame('3_months');
-              setShowTimeFrameMenu(false);
-            }}
-            title="3 Months"
-          />
-          <Menu.Item
-            onPress={() => {
-              setTimeFrame('6_months');
-              setShowTimeFrameMenu(false);
-            }}
-            title="6 Months"
-          />
-          <Menu.Item
-            onPress={() => {
-              setTimeFrame('1_year');
-              setShowTimeFrameMenu(false);
-            }}
-            title="1 Year"
-          />
-        </Menu>
+        <TextInput
+          mode="outlined"
+          placeholder="e.g., 90, 180, 365"
+          value={timeFrameDays > 0 ? timeFrameDays.toString() : ''}
+          onChangeText={handleTimeFrameChange}
+          keyboardType="number-pad"
+          style={styles.input}
+          error={!!timeFrameError}
+        />
+        {timeFrameError ? (
+          <Text variant="bodySmall" style={styles.errorText}>
+            {timeFrameError}
+          </Text>
+        ) : (
+          timeFrameDays > 0 && (
+            <Text variant="bodySmall" style={styles.helperText}>
+              {timeFrameDays} days ≈ {Math.floor(timeFrameDays / 30)} months {timeFrameDays % 30} days
+            </Text>
+          )
+        )}
       </View>
 
       {/* Info Box */}
@@ -175,7 +162,7 @@ export default function SetupGoalsScreen() {
         onPress={handleContinue}
         style={styles.continueButton}
         contentStyle={styles.buttonContent}
-        disabled={!title.trim() || !targetAmount || parseFloat(targetAmount) <= 0}
+        disabled={!title.trim() || !targetAmount || parseFloat(targetAmount) <= 0 || timeFrameDays < 90}
       >
         Continue
       </Button>
@@ -225,6 +212,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
   },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   dateButton: {
     borderColor: '#E5E7EB',
   },
@@ -246,5 +238,13 @@ const styles = StyleSheet.create({
   },
   buttonContent: {
     paddingVertical: 8,
+  },
+  helperText: {
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  errorText: {
+    color: '#EF4444',
+    marginTop: 4,
   },
 });
