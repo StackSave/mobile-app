@@ -1,6 +1,7 @@
 import '../polyfills';
 import { Stack } from 'expo-router';
 import { PaperProvider, MD3LightTheme } from 'react-native-paper';
+import { AuthProvider } from '../contexts/AuthContext';
 import { PaymentMethodProvider } from '../contexts/PaymentMethodContext';
 import { ProtocolProvider } from '../contexts/ProtocolContext';
 import { WalletProvider } from '../contexts/WalletContext';
@@ -29,31 +30,36 @@ const theme = {
 export default function RootLayout() {
   return (
     <PaperProvider theme={theme}>
-      <PaymentMethodProvider>
-        <ProtocolProvider>
-          <ModeProvider>
-            <WalletProvider>
-              <SavingsProvider>
-                <GoalsProvider>
-                  <PortfolioProvider>
-                    <StreakProvider>
-                      <Stack screenOptions={{ headerShown: false }}>
-                        <Stack.Screen name="index" />
-                        <Stack.Screen name="onboarding" />
-                        <Stack.Screen name="connect-wallet" />
-                        <Stack.Screen name="setup-goals" />
-                        <Stack.Screen name="link-payment" />
-                        <Stack.Screen name="(tabs)" />
-                        <Stack.Screen name="calendar" />
-                      </Stack>
-                    </StreakProvider>
-                  </PortfolioProvider>
-                </GoalsProvider>
-              </SavingsProvider>
-            </WalletProvider>
-          </ModeProvider>
-        </ProtocolProvider>
-      </PaymentMethodProvider>
+      <AuthProvider>
+        <PaymentMethodProvider>
+          <ProtocolProvider>
+            <ModeProvider>
+              <WalletProvider>
+                <SavingsProvider>
+                  <GoalsProvider>
+                    <PortfolioProvider>
+                      <StreakProvider>
+                        <Stack screenOptions={{ headerShown: false }}>
+                          <Stack.Screen name="index" />
+                          <Stack.Screen name="onboarding" />
+                          <Stack.Screen name="auth-choice" />
+                          <Stack.Screen name="connect-wallet" />
+                          <Stack.Screen name="email-phone-auth" />
+                          <Stack.Screen name="setup-goals" />
+                          <Stack.Screen name="link-payment" />
+                          <Stack.Screen name="pro-strategy-config" />
+                          <Stack.Screen name="(tabs)" />
+                          <Stack.Screen name="calendar" />
+                        </Stack>
+                      </StreakProvider>
+                    </PortfolioProvider>
+                  </GoalsProvider>
+                </SavingsProvider>
+              </WalletProvider>
+            </ModeProvider>
+          </ProtocolProvider>
+        </PaymentMethodProvider>
+      </AuthProvider>
     </PaperProvider>
   );
 }

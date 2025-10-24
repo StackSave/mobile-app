@@ -1,13 +1,15 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Card, Text, RadioButton } from 'react-native-paper';
+import { Card, Text, RadioButton, Chip } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { PaymentMethod } from '../types';
+import { PaymentMethod, Wallet } from '../types';
+import { requiresSignature } from '../utils/walletSignature';
 
 interface PaymentMethodSelectorProps {
   paymentMethods: PaymentMethod[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onAddNew?: () => void;
+  wallet?: Wallet | null;
 }
 
 export default function PaymentMethodSelector({
@@ -15,21 +17,37 @@ export default function PaymentMethodSelector({
   selectedId,
   onSelect,
   onAddNew,
+  wallet,
 }: PaymentMethodSelectorProps) {
   const getPaymentIcon = (type: string) => {
     switch (type) {
+      case 'usdc':
+        return 'currency-usd-circle';
+      case 'idrx':
+        return 'cash';
       case 'gopay':
         return 'wallet';
       case 'dana':
         return 'credit-card';
       case 'ovo':
-        return 'cash';
+        return 'cash-multiple';
       case 'bank_transfer':
         return 'bank';
       case 'shopeepay':
         return 'shopping';
       default:
         return 'credit-card-outline';
+    }
+  };
+
+  const getPaymentColor = (type: string) => {
+    switch (type) {
+      case 'usdc':
+        return '#2775CA'; // USDC blue
+      case 'idrx':
+        return '#10B981'; // Green for stablecoin
+      default:
+        return '#000000';
     }
   };
 
@@ -59,27 +77,49 @@ export default function PaymentMethodSelector({
             onPress={() => onSelect(method.id)}
           >
             <View style={styles.methodContent}>
-              <View style={styles.iconContainer}>
+              <View style={[
+                styles.iconContainer,
+                (method.type === 'usdc' || method.type === 'idrx') && styles.cryptoIconContainer
+              ]}>
                 <MaterialCommunityIcons
                   name={getPaymentIcon(method.type) as any}
                   size={24}
-                  color="#000000"
+                  color={getPaymentColor(method.type)}
                 />
               </View>
               <View style={styles.methodInfo}>
-                <Text variant="bodyMedium" style={styles.methodName}>
-                  {method.displayName}
-                </Text>
+                <View style={styles.nameRow}>
+                  <Text variant="bodyMedium" style={styles.methodName}>
+                    {method.displayName}
+                  </Text>
+                  {(method.type === 'usdc' || method.type === 'idrx') && (
+                    <View style={styles.cryptoBadge}>
+                      <Text variant="labelSmall" style={styles.cryptoBadgeText}>
+                        CRYPTO
+                      </Text>
+                    </View>
+                  )}
+                </View>
                 {method.accountNumber && (
                   <Text variant="bodySmall" style={styles.methodAccount}>
                     {method.accountNumber}
                   </Text>
                 )}
-                {method.isDefault && (
-                  <Text variant="labelSmall" style={styles.defaultBadge}>
-                    DEFAULT
-                  </Text>
-                )}
+                <View style={styles.badgesRow}>
+                  {method.isDefault && (
+                    <Text variant="labelSmall" style={styles.defaultBadge}>
+                      DEFAULT
+                    </Text>
+                  )}
+                  {requiresSignature(wallet, method.id) && (
+                    <View style={styles.signatureBadge}>
+                      <MaterialCommunityIcons name="shield-lock" size={10} color="#8B5CF6" />
+                      <Text variant="labelSmall" style={styles.signatureBadgeText}>
+                        Requires Signature
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
             <RadioButton
@@ -151,21 +191,61 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  cryptoIconContainer: {
+    backgroundColor: '#F0F9FF',
+  },
   methodInfo: {
     flex: 1,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
   },
   methodName: {
     fontWeight: '600',
     color: '#000000',
-    marginBottom: 2,
+  },
+  cryptoBadge: {
+    backgroundColor: '#DBEAFE',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  cryptoBadgeText: {
+    color: '#1E40AF',
+    fontWeight: 'bold',
+    fontSize: 9,
   },
   methodAccount: {
     color: '#6B7280',
     marginBottom: 4,
   },
+  badgesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+    flexWrap: 'wrap',
+  },
   defaultBadge: {
     color: '#10B981',
     fontWeight: 'bold',
     fontSize: 10,
+  },
+  signatureBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F3E8FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  signatureBadgeText: {
+    color: '#8B5CF6',
+    fontWeight: 'bold',
+    fontSize: 9,
   },
 });

@@ -16,18 +16,8 @@ const MODE_INFO = {
     dailyAPY: '0.02-0.05%',
     yearlyAPY: '7-15%',
     risk: 'Low',
-    description: '100% stablecoin pools',
+    description: '100% stablecoin pools - safest option',
     allocation: 'Stablecoin only',
-  },
-  balanced: {
-    title: 'Balanced Mode',
-    icon: 'scale-balance',
-    color: '#3B82F6',
-    dailyAPY: '0.05-0.15%',
-    yearlyAPY: '15-40%',
-    risk: 'Medium',
-    description: 'Mixed pool allocation',
-    allocation: '60% Stable, 40% Growth',
   },
   pro: {
     title: 'Pro Mode',
@@ -36,13 +26,13 @@ const MODE_INFO = {
     dailyAPY: '0.1-0.3%+',
     yearlyAPY: '30-100%+',
     risk: 'High',
-    description: 'Maximum yield strategy',
+    description: 'Maximum yield with customizable strategy',
     allocation: '30% Stable, 70% Aggressive',
   },
 };
 
 export default function ModeComparisonCard({ currentMode, onModeSelect }: ModeComparisonCardProps) {
-  const modes: AppMode[] = ['lite', 'balanced', 'pro'];
+  const modes: AppMode[] = ['lite', 'pro'];
 
   return (
     <Card style={styles.card}>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Button, Card } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { usePortfolio } from '../../contexts/PortfolioContext';
 import { useMode } from '../../contexts/ModeContext';
 import PortfolioAllocationChart from '../../components/PortfolioAllocationChart';
@@ -47,9 +48,9 @@ export default function PortfolioScreen() {
       >
         <View style={styles.modeBadge}>
           <MaterialCommunityIcons
-            name={mode === 'lite' ? 'shield-check' : mode === 'balanced' ? 'scale-balance' : 'rocket-launch'}
+            name={mode === 'lite' ? 'shield-check' : 'rocket-launch'}
             size={20}
-            color={mode === 'lite' ? '#10B981' : mode === 'balanced' ? '#3B82F6' : '#8B5CF6'}
+            color={mode === 'lite' ? '#10B981' : '#8B5CF6'}
           />
           <View style={styles.modeText}>
             <Text variant="labelSmall" style={styles.modeLabel}>
@@ -75,6 +76,19 @@ export default function PortfolioScreen() {
             setShowModeSelector(false);
           }}
         />
+      )}
+
+      {/* Customize Strategy Button (Pro Mode Only) */}
+      {mode === 'pro' && (
+        <Button
+          mode="outlined"
+          icon="tune"
+          onPress={() => router.push('/pro-strategy-config')}
+          style={styles.customizeButton}
+          contentStyle={styles.customizeButtonContent}
+        >
+          Customize Strategy
+        </Button>
       )}
 
       {!hasAllocations ? (
@@ -327,5 +341,12 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#6B7280',
     lineHeight: 20,
+  },
+  customizeButton: {
+    marginBottom: 16,
+    borderColor: '#8B5CF6',
+  },
+  customizeButtonContent: {
+    paddingVertical: 6,
   },
 });

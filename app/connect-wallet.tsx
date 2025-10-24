@@ -3,10 +3,12 @@ import { View, StyleSheet, Image, ScrollView } from 'react-native';
 import { Text, Button, ActivityIndicator, TextInput, Snackbar } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useWallet } from '../contexts/WalletContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function ConnectWalletScreen() {
   const router = useRouter();
   const { wallet, isConnected, isConnecting, connect } = useWallet();
+  const { loginWithWallet } = useAuth();
   const [walletAddress, setWalletAddress] = useState('');
   const [error, setError] = useState('');
 
@@ -26,7 +28,11 @@ export default function ConnectWalletScreen() {
         return;
       }
 
-      await connect(walletAddress.trim());
+      // Connect wallet with 'wallet' auth type (requires signatures)
+      await connect(walletAddress.trim(), 'wallet');
+
+      // Update auth context
+      await loginWithWallet(walletAddress.trim());
     } catch (err) {
       console.error('Failed to connect wallet:', err);
       setError(err instanceof Error ? err.message : 'Failed to connect wallet');

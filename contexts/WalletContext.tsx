@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { createPublicClient, http, formatEther } from 'viem';
 import { baseSepolia } from 'viem/chains';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Wallet } from '../types';
+import { Wallet, AuthType } from '../types';
 
 const STORAGE_KEY = '@stacksave_wallet_session';
 
@@ -10,7 +10,7 @@ interface WalletContextType {
   wallet: Wallet | null;
   isConnected: boolean;
   isConnecting: boolean;
-  connect: (address: string) => Promise<void>;
+  connect: (address: string, authType?: AuthType) => Promise<void>;
   disconnect: () => Promise<void>;
   fetchBalances: () => Promise<void>;
   updateBalance: (type: 'eth' | 'usdc', amount: number) => void;
@@ -99,7 +99,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const connect = async (address: string) => {
+  const connect = async (address: string, authType: AuthType = 'wallet') => {
     try {
       setIsConnecting(true);
 
@@ -113,6 +113,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         address: address.toLowerCase(),
         balance: { eth: 0, usdc: 0 },
         network: 'Base Sepolia',
+        authType: authType,
       };
 
       setWallet(newWallet);

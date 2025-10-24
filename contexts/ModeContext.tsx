@@ -6,8 +6,9 @@ interface ModeContextType {
   setMode: (mode: AppMode) => void;
   toggleMode: () => void;
   isLiteMode: boolean;
-  isBalancedMode: boolean;
   isProMode: boolean;
+  customProStrategy: AllocationStrategy | null;
+  setCustomProStrategy: (strategy: AllocationStrategy) => void;
   getAllocationStrategy: () => AllocationStrategy;
   getModeLabel: () => string;
   getModeDescription: () => string;
@@ -32,36 +33,6 @@ const ALLOCATION_STRATEGIES: Record<AppMode, AllocationStrategy> = {
     expectedYearlyAPY: { min: 7, max: 15 },
     riskLevel: 'Low',
     description: '100% in stable, low-risk lending pools for steady returns',
-  },
-  balanced: {
-    mode: 'balanced',
-    allocations: [
-      {
-        poolType: 'stablecoin',
-        targetPercentage: 60,
-        minAPY: 7,
-        maxAPY: 15,
-        protocols: ['aave-v3-usdc', 'compound-v3-usdc'],
-      },
-      {
-        poolType: 'yield_aggregator',
-        targetPercentage: 25,
-        minAPY: 15,
-        maxAPY: 35,
-        protocols: ['beefy-stable', 'yearn-usdc'],
-      },
-      {
-        poolType: 'staking',
-        targetPercentage: 15,
-        minAPY: 20,
-        maxAPY: 50,
-        protocols: ['moonwell-usdc', 'seamless-usdc'],
-      },
-    ],
-    expectedDailyAPY: { min: 0.05, max: 0.15 },
-    expectedYearlyAPY: { min: 15, max: 40 },
-    riskLevel: 'Medium',
-    description: 'Balanced mix of stable pools (60%), yield aggregators (25%), and staking (15%)',
   },
   pro: {
     mode: 'pro',
@@ -98,37 +69,38 @@ const ALLOCATION_STRATEGIES: Record<AppMode, AllocationStrategy> = {
     expectedDailyAPY: { min: 0.1, max: 0.3 },
     expectedYearlyAPY: { min: 30, max: 100 },
     riskLevel: 'High',
-    description: 'High-risk portfolio with DEX pools (25%), yield aggregators (30%), staking (15%), and stable base (30%)',
+    description: 'Balanced Aggressive: 30% Stable, 30% Yield Aggregators, 25% DEX, 15% Staking',
+    templateName: 'Balanced Aggressive',
   },
 };
 
 export const ModeProvider = ({ children }: { children: ReactNode }) => {
   const [mode, setMode] = useState<AppMode>('lite');
+  const [customProStrategy, setCustomProStrategy] = useState<AllocationStrategy | null>(null);
 
   const toggleMode = () => {
-    setMode((prev) => {
-      if (prev === 'lite') return 'balanced';
-      if (prev === 'balanced') return 'pro';
-      return 'lite';
-    });
+    setMode((prev) => (prev === 'lite' ? 'pro' : 'lite'));
   };
 
   const getAllocationStrategy = (): AllocationStrategy => {
+    // If in Pro mode and custom strategy exists, use it
+    if (mode === 'pro' && customProStrategy) {
+      return customProStrategy;
+    }
     return ALLOCATION_STRATEGIES[mode];
   };
 
   const getModeLabel = (): string => {
-    switch (mode) {
-      case 'lite':
-        return 'Lite Mode';
-      case 'balanced':
-        return 'Balanced Mode';
-      case 'pro':
-        return 'Pro Mode';
+    if (mode === 'pro' && customProStrategy?.isCustom) {
+      return `Pro Mode (${customProStrategy.templateName || 'Custom'})`;
     }
+    return mode === 'lite' ? 'Lite Mode' : 'Pro Mode';
   };
 
   const getModeDescription = (): string => {
+    if (mode === 'pro' && customProStrategy) {
+      return customProStrategy.description;
+    }
     return ALLOCATION_STRATEGIES[mode].description;
   };
 
@@ -139,8 +111,9 @@ export const ModeProvider = ({ children }: { children: ReactNode }) => {
         setMode,
         toggleMode,
         isLiteMode: mode === 'lite',
-        isBalancedMode: mode === 'balanced',
         isProMode: mode === 'pro',
+        customProStrategy,
+        setCustomProStrategy,
         getAllocationStrategy,
         getModeLabel,
         getModeDescription,

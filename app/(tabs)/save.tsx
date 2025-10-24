@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
-import { Text, TextInput, Button, Snackbar, Card, Switch, Chip } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert } from 'react-native';
+import { Text, TextInput, Button, Snackbar, Card, Switch, Chip, Dialog, Portal } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useWallet } from '../../contexts/WalletContext';
 import { useSavings } from '../../contexts/SavingsContext';
@@ -17,6 +17,11 @@ import AllocationPreview from '../../components/AllocationPreview';
 import TransactionHistoryList from '../../components/TransactionHistoryList';
 import { Colors, Spacing, CardStyles, Shadows } from '../../constants/theme';
 import { formatIDR, formatCompactIDR } from '../../utils/formatters';
+import {
+  requiresSignature,
+  requestWalletSignature,
+  getSignatureExplanation,
+} from '../../utils/walletSignature';
 
 type TabType = 'save' | 'withdraw' | 'history';
 
@@ -40,6 +45,8 @@ export default function SaveScreen() {
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [signatureDialogVisible, setSignatureDialogVisible] = useState(false);
+  const [pendingTransaction, setPendingTransaction] = useState<any>(null);
 
   // Conversion rate: 1 USDC ≈ 15,800 IDR (example rate)
   const IDR_TO_USDC_RATE = 15800;
@@ -55,7 +62,7 @@ export default function SaveScreen() {
   const estimatedUSDC = (idrAmount - totalFees) / IDR_TO_USDC_RATE;
 
   // Save Tab Handlers
-  const handleDeposit = () => {
+  const handleDeposit = async () => {
     if (isNaN(idrAmount) || idrAmount <= 0) {
       setSnackbarMessage('Please enter a valid amount');
       setSnackbarVisible(true);
@@ -67,6 +74,27 @@ export default function SaveScreen() {
       return;
     }
 
+    const paymentMethod = paymentMethods.find((pm) => pm.id === selectedPaymentMethod);
+    if (!paymentMethod) return;
+
+    // Check if signature is required
+    const needsSignature = requiresSignature(wallet, paymentMethod.id);
+
+    if (needsSignature) {
+      // Show signature explanation dialog
+      setPendingTransaction({
+        amount: estimatedUSDC,
+        token: paymentMethod.id,
+        type: 'save',
+      });
+      setSignatureDialogVisible(true);
+    } else {
+      // Process without signature (custodial or non-crypto)
+      await processDeposit();
+    }
+  };
+
+  const processDeposit = async (signature?: string) => {
     // Simulate the deposit flow
     setLoading(true);
     setTimeout(() => {
@@ -91,13 +119,50 @@ export default function SaveScreen() {
       }
 
       const poolCount = allocations.length;
+      const signatureMsg = signature ? ' (Signed Transaction)' : '';
       setSnackbarMessage(
-        `Successfully deposited Rp ${formatIDR(idrAmount)} → ${estimatedUSDC.toFixed(2)} USDC across ${poolCount} pools!`
+        `Successfully deposited Rp ${formatIDR(idrAmount)} → ${estimatedUSDC.toFixed(2)} USDC across ${poolCount} pools!${signatureMsg}`
       );
       setSnackbarVisible(true);
       setAmountIDR('');
       setLoading(false);
     }, 2000);
+  };
+
+  const handleSignature = async () => {
+    if (!wallet || !pendingTransaction) return;
+
+    setSignatureDialogVisible(false);
+    setLoading(true);
+
+    try {
+      const result = await requestWalletSignature({
+        wallet,
+        transaction: {
+          ...pendingTransaction,
+          timestamp: Date.now(),
+        },
+      });
+
+      if (result.success) {
+        await processDeposit(result.signature);
+      } else {
+        setSnackbarMessage(result.error || 'Signature request failed');
+        setSnackbarVisible(true);
+        setLoading(false);
+      }
+    } catch (error) {
+      setSnackbarMessage('Failed to get signature');
+      setSnackbarVisible(true);
+      setLoading(false);
+    }
+
+    setPendingTransaction(null);
+  };
+
+  const handleCancelSignature = () => {
+    setSignatureDialogVisible(false);
+    setPendingTransaction(null);
   };
 
   // Withdraw Tab Handlers
@@ -223,6 +288,7 @@ export default function SaveScreen() {
           paymentMethods={paymentMethods}
           selectedId={selectedPaymentMethod}
           onSelect={setSelectedPaymentMethod}
+          wallet={wallet}
         />
 
         {/* Deposit Button */}
@@ -382,6 +448,39 @@ export default function SaveScreen() {
           {activeTab === 'history' && renderHistoryTab()}
         </ScrollView>
       </View>
+
+      {/* Signature Request Dialog */}
+      <Portal>
+        <Dialog visible={signatureDialogVisible} onDismiss={handleCancelSignature}>
+          <Dialog.Icon icon="shield-lock-outline" size={48} />
+          <Dialog.Title style={styles.dialogTitle}>Signature Required</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium" style={styles.dialogText}>
+              {pendingTransaction &&
+                getSignatureExplanation(pendingTransaction.token.toUpperCase())}
+            </Text>
+            <View style={styles.transactionDetails}>
+              <MaterialCommunityIcons name="information-outline" size={20} color="#6B7280" />
+              <Text variant="bodySmall" style={styles.detailsText}>
+                Amount: {pendingTransaction?.amount.toFixed(4)}{' '}
+                {pendingTransaction?.token.toUpperCase()}
+              </Text>
+            </View>
+            <View style={styles.securityNote}>
+              <MaterialCommunityIcons name="shield-check" size={20} color="#10B981" />
+              <Text variant="bodySmall" style={styles.securityText}>
+                Your private keys never leave your wallet
+              </Text>
+            </View>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={handleCancelSignature}>Cancel</Button>
+            <Button mode="contained" onPress={handleSignature}>
+              Sign Transaction
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
       <Snackbar
         visible={snackbarVisible}
@@ -623,5 +722,40 @@ const styles = StyleSheet.create({
   apyText: {
     color: '#10B981',
     fontWeight: 'bold',
+  },
+  dialogTitle: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  dialogText: {
+    color: '#374151',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  transactionDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F3F4F6',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  detailsText: {
+    flex: 1,
+    color: '#374151',
+    fontWeight: '600',
+  },
+  securityNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#ECFDF5',
+    padding: 12,
+    borderRadius: 8,
+  },
+  securityText: {
+    flex: 1,
+    color: '#059669',
   },
 });

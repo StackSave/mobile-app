@@ -16,14 +16,30 @@ const generateDummyPaymentMethods = (): PaymentMethod[] => {
   return [
     {
       id: '1',
-      type: 'gopay',
-      displayName: 'GoPay',
-      accountNumber: '0812****5678',
+      type: 'usdc',
+      displayName: 'USDC',
+      accountNumber: '0x742d...0bEb',
       isDefault: true,
-      icon: 'wallet',
+      icon: 'currency-usd-circle',
     },
     {
       id: '2',
+      type: 'idrx',
+      displayName: 'IDRX',
+      accountNumber: '0x742d...0bEb',
+      isDefault: false,
+      icon: 'cash',
+    },
+    {
+      id: '3',
+      type: 'gopay',
+      displayName: 'GoPay',
+      accountNumber: '0812****5678',
+      isDefault: false,
+      icon: 'wallet',
+    },
+    {
+      id: '4',
       type: 'dana',
       displayName: 'DANA',
       accountNumber: '0851****1234',
@@ -31,7 +47,7 @@ const generateDummyPaymentMethods = (): PaymentMethod[] => {
       icon: 'credit-card',
     },
     {
-      id: '3',
+      id: '5',
       type: 'bank_transfer',
       displayName: 'BCA',
       accountNumber: '****7890',

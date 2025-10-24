@@ -23,6 +23,8 @@ export default function HomeScreen() {
   const { totalValue, totalEarnings, averageAPY } = portfolioPerformance;
   const topPools = poolAllocations.slice(0, 3); // Show top 3 pools only
 
+  
+
   return (
     <View style={styles.container}>
       {/* Header */}

@@ -10,7 +10,7 @@ const SLIDES = [
   {
     emoji: '🪙',
     title: 'Welcome to StackSave',
-    description: 'Save, grow, and earn — one day at a time.\n\nStackSave turns your crypto savings into daily progress, just like learning on Duolingo — but for your wealth.',
+    description: 'Save, grow, and earn — one day at a time.\n\nStackSave turns your savings into daily progress, just like learning on Duolingo — but for your wealth.',
   },
   {
     emoji: '⚖️',
@@ -30,11 +30,7 @@ const SLIDES = [
     emoji: '🧠',
     title: 'Risk Managed, Always',
     description: 'Behind the scenes, StackSave automatically finds the best daily APY across trusted DeFi protocols.\n\nIt rebalances to minimize risk and keeps your portfolio safe while you focus on staying consistent.',
-    bulletPoints: [
-      'Lite Mode: 0.02–0.05%/day (~7–15% APY)',
-      'Balanced Mode: 0.05–0.15%/day (~15–40% APY)',
-      'Pro Mode: Up to 0.3%/day — higher yield, higher risk',
-    ],
+
   },
   {
     emoji: '🔥',
@@ -56,13 +52,13 @@ export default function OnboardingScreen() {
         animated: true,
       });
     } else {
-      // Last slide, go to wallet connection
-      router.push('/connect-wallet');
+      // Last slide, go to goal setup
+      router.push('/setup-goals');
     }
   };
 
   const handleSkip = () => {
-    router.push('/connect-wallet');
+    router.push('/setup-goals');
   };
 
   const handleScroll = (event: any) => {

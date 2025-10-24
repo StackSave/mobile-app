@@ -5,6 +5,7 @@ export interface Wallet {
     usdc: number;
   };
   network: 'Base Sepolia';
+  authType: AuthType;
 }
 
 export interface Deposit {
@@ -86,7 +87,7 @@ export interface SavingPreferences {
 }
 
 // Payment Method Types
-export type PaymentMethodType = 'gopay' | 'dana' | 'ovo' | 'bank_transfer' | 'shopeepay';
+export type PaymentMethodType = 'gopay' | 'dana' | 'ovo' | 'bank_transfer' | 'shopeepay' | 'usdc' | 'idrx';
 
 export interface PaymentMethod {
   id: string;
@@ -99,7 +100,8 @@ export interface PaymentMethod {
 
 // Pool and Protocol Types
 export type PoolType = 'stablecoin' | 'lending' | 'dex' | 'staking' | 'yield_aggregator';
-export type AppMode = 'lite' | 'balanced' | 'pro';
+export type AppMode = 'lite' | 'pro';
+export type AuthType = 'wallet' | 'custodial';
 
 // DeFi Protocol Types
 export interface Protocol {
@@ -205,6 +207,8 @@ export interface AllocationStrategy {
   expectedYearlyAPY: { min: number; max: number };
   riskLevel: 'Low' | 'Medium' | 'High';
   description: string;
+  isCustom?: boolean; // For custom Pro strategies
+  templateName?: string; // Name of the template if using preset
 }
 
 export interface PortfolioPerformance {
